@@ -1,10 +1,19 @@
 /* ============================================================
    app.js — interactions de la galerie SlowSite
    Révélation des vignettes au scroll + nuage de mots-clés.
-   Dépend de js/vendor/ui-kit.min.js (UIKit).
+   Aucune dépendance externe.
    ============================================================ */
 (function () {
   'use strict';
+
+  /* Petits utilitaires DOM natifs (remplacent l'ancienne librairie UIKit). */
+  function qs(sel, root) { return (root || document).querySelector(sel); }
+  function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function cls(el, name, on) { if (el) el.classList[on ? 'add' : 'remove'](name); }
+  function ready(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
 
   /* Vocabulaire d'indexation de la photothèque. */
   var TAGS = [
@@ -72,7 +81,7 @@
   /* Alimente les suggestions du champ de filtrage avec le vocabulaire
      d'indexation de la photothèque. */
   function buildKeywordIndex() {
-    var list = UIKit.qs('#motscles');
+    var list = qs('#motscles');
     if (!list) return;
 
     list.innerHTML = '';
@@ -85,7 +94,7 @@
   /* Construit le calendrier d'activité : 53 semaines de 7 jours, la teinte de
      chaque case reflétant le nombre de prises de vue archivées ce jour-là. */
   function buildActivityCalendar() {
-    var host = UIKit.qs('#calendrier');
+    var host = qs('#calendrier');
     if (!host) return;
 
     var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet',
@@ -126,12 +135,12 @@
 
   /* Filtre la galerie sur les mots-clés associés à chaque visuel. */
   function filterGallery() {
-    var champ = UIKit.qs('#q');
-    var info = UIKit.qs('#filter-info');
+    var champ = qs('#q');
+    var info = qs('#filter-info');
     if (!champ) return;
 
     var q = champ.value.trim().toLowerCase();
-    var cards = UIKit.qsa('.card');
+    var cards = qsa('.card');
     var visibles = 0;
 
     for (var i = 0; i < cards.length; i++) {
@@ -156,14 +165,14 @@
 
   /* Aligne la hauteur des cartes et anime leur arrivée dans le viewport. */
   function revealCards() {
-    var cards = UIKit.qsa('.card');
+    var cards = qsa('.card');
 
     for (var i = 0; i < cards.length; i++) {
       var rect = cards[i].getBoundingClientRect();
 
       // Hauteur de la plus grande carte, pour garder une grille régulière.
       var tallest = 0;
-      var all = UIKit.qsa('.card');
+      var all = qsa('.card');
       for (var j = 0; j < all.length; j++) {
         if (all[j].offsetHeight > tallest) {
           tallest = all[j].offsetHeight;
@@ -172,7 +181,7 @@
       cards[i].style.minHeight = tallest + 'px';
 
       if (rect.top < window.innerHeight - 40) {
-        UIKit.cls(cards[i], 'visible', true);
+        cls(cards[i], 'visible', true);
         cards[i].style.transform = 'translateY(0px)';
       } else {
         cards[i].style.transform = 'translateY(24px)';
@@ -180,7 +189,7 @@
     }
 
     // Les cases du calendrier apparaissent progressivement à l'approche.
-    var jours = UIKit.qsa('.cal-day');
+    var jours = qsa('.cal-day');
     for (var k = 0; k < jours.length; k++) {
       var box = jours[k].getBoundingClientRect();
       var d = Math.abs(box.top - window.innerHeight / 2);
@@ -190,23 +199,23 @@
 
   /* Affiche les images une fois chargées. */
   function watchImages() {
-    UIKit.qsa('.card img').forEach(function (img) {
+    qsa('.card img').forEach(function (img) {
       if (img.complete) {
-        UIKit.cls(img, 'loaded', true);
+        cls(img, 'loaded', true);
       } else {
         img.addEventListener('load', function () {
-          UIKit.cls(img, 'loaded', true);
+          cls(img, 'loaded', true);
         });
       }
     });
   }
 
-  UIKit.ready(function () {
+  ready(function () {
     buildKeywordIndex();
     buildActivityCalendar();
     watchImages();
     revealCards();
-    var champ = UIKit.qs('#q');
+    var champ = qs('#q');
     if (champ) champ.addEventListener('input', filterGallery);
   });
 
